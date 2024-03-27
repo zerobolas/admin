@@ -1,5 +1,5 @@
 import { Contact } from "./contact";
-import { Coordinates } from "./Coordinates";
+import { Coordinates } from "./coordinates";
 import { User } from "./users";
 
 export type Address = {

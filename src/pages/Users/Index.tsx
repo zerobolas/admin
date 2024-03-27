@@ -1,13 +1,23 @@
 import { Sheet, Table } from "@mui/joy";
-import { useQuery } from "@tanstack/react-query";
-import { User } from "../../types/users";
-function Index() {
-  const { data } = useQuery("users", async () => {
-    const response = await fetch("https://jsonplaceholder.typicode.com/users");
-    return response.json();
-  });
+// import { useQuery } from "@tanstack/react-query";
+// import { User } from "../../types/users";
+// import { getUsers } from "../../api/users";
 
-  const users = data.data?.users as User[];
+const users = [
+  {
+    id: "1",
+    name: "John Doe",
+    email: "john@email.com",
+    createdAt: new Date().toISOString(),
+  },
+];
+
+function Index() {
+  // const { data } = useQuery(['users'], {
+  //   queryFn: getUsers,
+  // });
+
+  // const users = data.data.users as User[];
 
   return (
     <Sheet>
@@ -30,7 +40,7 @@ function Index() {
           </thead>
           <tbody>
             {users &&
-              users?.map((user: User) => (
+              users?.map((user) => (
                 <tr key={user.id}>
                   <td>{user.name}</td>
                   <td>{user.email}</td>
@@ -44,7 +54,7 @@ function Index() {
           </tbody>
           <tfoot>
             <tr>
-              <td colSpan={4}>Total: {data?.length}</td>
+              <td colSpan={4}>Total: {users?.length}</td>
             </tr>
           </tfoot>
         </Table>
