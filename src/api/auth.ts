@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from "axios";
 
 const instance = axios.create({
-  baseURL: "http://localhost:3000", // Set your base URL here
+  baseURL: import.meta.env.VITE_API_URL,
 });
 
 const getJWT = () => localStorage.getItem("jwt");

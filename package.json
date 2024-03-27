@@ -17,6 +17,7 @@
     "@mui/joy": "^5.0.0-beta.32",
     "@tanstack/react-query": "^5.28.6",
     "axios": "^1.6.8",
+    "dotenv": "^16.4.5",
     "formik": "^2.4.5",
     "react": "^18.2.0",
     "react-auth-kit": "^2.1.1",
