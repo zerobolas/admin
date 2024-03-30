@@ -24,4 +24,5 @@ export type User = {
   purchasesCount: number;
   createdAt: string;
   updatedAt: string;
+  shortName: string;
 };

@@ -43,10 +43,14 @@ function App() {
     enabled: !!token,
   });
 
-  console.log("🚀 ~ App ~ data:", data);
+  const logout = () => {
+    localStorage.removeItem("jwt");
+    setUser(null);
+    setToken("");
+  };
+
   useEffect(() => {
     const jwt = localStorage.getItem("jwt");
-    console.log("🚀 App ~ useEffect ~ jwt:", jwt);
     if (jwt) {
       setAxiosAuthHeader(jwt);
       setToken(jwt);
@@ -61,7 +65,12 @@ function App() {
 
   return (
     <>
-      <AuthProvider isSignedIn={user !== null} user={user} setToken={setToken}>
+      <AuthProvider
+        isSignedIn={user !== null}
+        user={user}
+        setToken={setToken}
+        logout={logout}
+      >
         <RouterProvider router={router} />
       </AuthProvider>
     </>

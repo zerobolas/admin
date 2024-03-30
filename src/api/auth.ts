@@ -4,12 +4,10 @@ const instance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
 });
 
-const getJWT = () => localStorage.getItem("jwt");
-
 // set the JWT token in the Authorization header
 export const setAxiosAuthHeader = (token: string) => {
   instance.interceptors.request.use((config) => {
-    const jwt = token || getJWT();
+    const jwt = token || localStorage.getItem("jwt");
 
     if (jwt) {
       config.headers.Authorization = `Bearer ${jwt}`;

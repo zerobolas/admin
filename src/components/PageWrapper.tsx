@@ -1,8 +1,16 @@
 import { CssBaseline, GlobalStyles, Sheet } from "@mui/joy";
 import { CssVarsProvider } from "@mui/joy";
 import theme from "../utils/theme";
+import PageHeader from "./PageHeader";
+import { PageHeaderProps } from "./PageHeader";
 
-function PageWrapper({ page }: { page: React.ReactNode }) {
+type PageWrapperProps = {
+  children: React.ReactNode;
+  title: string;
+  button: PageHeaderProps["button"];
+};
+
+function PageWrapper({ children, title, button }: PageWrapperProps) {
   return (
     <CssVarsProvider defaultMode="dark" disableTransitionOnChange theme={theme}>
       <CssBaseline />
@@ -15,7 +23,8 @@ function PageWrapper({ page }: { page: React.ReactNode }) {
         }}
       />
       <main>
-        <Sheet>{page}</Sheet>
+        <PageHeader title={title} button={button} />
+        <Sheet>{children}</Sheet>
       </main>
     </CssVarsProvider>
   );
