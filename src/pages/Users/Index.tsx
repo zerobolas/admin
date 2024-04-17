@@ -11,7 +11,7 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 function Index() {
   const { setNotification } = useNotification();
   const {
-    data: usersQuery,
+    data: { data: usersQuery } = {},
     isError,
     error,
   } = useQuery({
@@ -19,7 +19,7 @@ function Index() {
     queryFn: getUsers,
   });
 
-  const users = usersQuery?.data?.data?.users as User[];
+  const users = usersQuery?.data?.users as User[];
 
   const exportCSV = () => {
     setNotification({
