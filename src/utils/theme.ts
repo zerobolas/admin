@@ -44,6 +44,11 @@ const theme = extendTheme({
     body: "SF Pro Text, var(--gh-fontFamily-fallback)",
   },
   components: {
+    JoySkeleton: {
+      defaultProps: {
+        animation: "wave",
+      },
+    },
     JoyButton: {
       styleOverrides: {
         root: ({ ownerState }) => ({

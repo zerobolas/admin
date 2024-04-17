@@ -12,6 +12,9 @@ import { getMe, setAxiosAuthHeader } from "./api/auth.ts";
 import Layout from "./components/Layout.tsx";
 import { useEffect, useState } from "react";
 
+//Context
+import { NotificationProvider } from "./context/NotificationContext.tsx";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -71,7 +74,9 @@ function App() {
         setToken={setToken}
         logout={logout}
       >
-        <RouterProvider router={router} />
+        <NotificationProvider>
+          <RouterProvider router={router} />
+        </NotificationProvider>
       </AuthProvider>
     </>
   );
