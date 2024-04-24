@@ -230,7 +230,7 @@ function Index() {
   }, [isError, error, setNotification]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleChangeRowsPerPage = (event: any, newValue: number | null) => {
+  const handleChangeRowsPerPage = (_: any, newValue: number | null) => {
     setRowsPerPage(parseInt(newValue?.toString() || "50", 10));
     setPage(0);
   };
