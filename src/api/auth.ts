@@ -5,7 +5,6 @@ import instance from "../utils/axiosInstance";
 export const setAxiosAuthHeader = (token: string) => {
   instance.interceptors.request.use((config) => {
     const jwt = token || localStorage.getItem("jwt");
-    console.log("🚀 ~ instance.interceptors.request.use ~ jwt:", jwt);
 
     if (jwt) {
       config.headers.Authorization = `Bearer ${jwt}`;

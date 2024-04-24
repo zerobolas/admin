@@ -3,7 +3,6 @@ import { useNotification } from "../context/NotificationContext";
 
 const GlobalToast = () => {
   const { notification, setNotification } = useNotification();
-  console.log("🚀 ~ GlobalToast ~ notification:", notification);
 
   return (
     <Snackbar
