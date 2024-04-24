@@ -1,7 +1,15 @@
 import React from "react";
 import { Table, Skeleton } from "@mui/joy";
 
-const TableSkeleton: React.FC = () => {
+type TableSkeletonProps = {
+  rows?: number;
+  cols?: number;
+};
+
+const TableSkeleton: React.FC<TableSkeletonProps> = ({
+  rows = 50,
+  cols = 4,
+}: TableSkeletonProps) => {
   return (
     <Table
       borderAxis="xBetween"
@@ -12,7 +20,7 @@ const TableSkeleton: React.FC = () => {
     >
       <thead>
         <tr>
-          {Array.from({ length: 4 }).map((_, index) => (
+          {Array.from({ length: cols }).map((_, index) => (
             <th key={index}>
               <Skeleton variant="text" />
             </th>
@@ -20,9 +28,9 @@ const TableSkeleton: React.FC = () => {
         </tr>
       </thead>
       <tbody>
-        {Array.from({ length: 4 }).map((_, index) => (
+        {Array.from({ length: rows }).map((_, index) => (
           <tr key={index}>
-            {Array.from({ length: 4 }).map((_, index) => (
+            {Array.from({ length: cols }).map((_, index) => (
               <td key={index}>
                 <Skeleton
                   variant="text"

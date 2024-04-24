@@ -1,32 +1,180 @@
-import { useEffect } from "react";
-import { Table, Sheet, IconButton, Box } from "@mui/joy";
+import { useEffect, useState } from "react";
+import {
+  Table,
+  Sheet,
+  IconButton,
+  Box,
+  FormControl,
+  FormLabel,
+  Select,
+  Option,
+  Typography,
+  Dropdown,
+  Menu,
+  MenuItem,
+  MenuButton,
+  Divider,
+  Modal,
+  ModalDialog,
+  Button,
+} from "@mui/joy";
 import PageWrapper from "../../components/PageWrapper";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { User } from "../../types/users";
-import { getUsers } from "../../api/users";
-import { useNotification } from "../../context/NotificationContext";
+import { getUsers, exportUsers, deleteUser } from "../../api/users";
+import {
+  NotificationContextType,
+  useNotification,
+} from "../../context/NotificationContext";
 import TableSkeleton from "../../components/TableSkeleton";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import { KeyboardArrowLeft, KeyboardArrowRight } from "@mui/icons-material";
+import queryClient from "../../utils/queryClient";
+import DialogTitle from "@mui/joy/DialogTitle";
+import DialogContent from "@mui/joy/DialogContent";
+import DialogActions from "@mui/joy/DialogActions";
+import DeleteForever from "@mui/icons-material/DeleteForever";
+import WarningRoundedIcon from "@mui/icons-material/WarningRounded";
+
+function AlertDialogModal({
+  open,
+  onClose,
+  onAccept,
+  onCancel,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onAccept: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <>
+      <Modal open={open} onClose={onClose}>
+        <ModalDialog variant="plain" role="alertdialog">
+          <DialogTitle>
+            <WarningRoundedIcon />
+            Confirmation
+          </DialogTitle>
+          <Divider />
+          <DialogContent>
+            Are you sure you want to delete this user?
+          </DialogContent>
+          <DialogActions>
+            <Button
+              variant="solid"
+              color="danger"
+              onClick={() => {
+                onAccept();
+                onClose();
+              }}
+            >
+              <DeleteForever />
+              Delete
+            </Button>
+            <Button
+              variant="plain"
+              color="neutral"
+              onClick={() => {
+                onCancel();
+                onClose();
+              }}
+            >
+              Cancel
+            </Button>
+          </DialogActions>
+        </ModalDialog>
+      </Modal>
+    </>
+  );
+}
+
+function RowMenu({
+  user,
+  page,
+  rowsPerPage,
+}: {
+  user: User;
+  page: number;
+  rowsPerPage: number;
+}) {
+  const { setNotification } = useNotification();
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const deleteUserMutation = useMutation({
+    mutationFn: (id: string) => deleteUser(id),
+    onMutate: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["users", page, rowsPerPage],
+      });
+      setNotification({
+        message: "User deleted",
+        type: "neutral",
+      });
+    },
+    onError: (error) => {
+      setNotification({
+        message: error?.message || "An error occurred",
+        type: "danger",
+      });
+    },
+  });
+
+  return (
+    <>
+      <Dropdown>
+        <MenuButton
+          slots={{ root: IconButton }}
+          slotProps={{
+            root: { variant: "soft", color: "neutral", size: "sm" },
+          }}
+        >
+          <MoreHorizIcon />
+        </MenuButton>
+        <Menu size="sm" sx={{ minWidth: 140 }} variant="soft">
+          <MenuItem>Edit</MenuItem>
+          <MenuItem>Promote to admin</MenuItem>
+          <MenuItem>Publish ad</MenuItem>
+          <Divider />
+          <MenuItem
+            color="danger"
+            onClick={() => {
+              setModalOpen(true);
+            }}
+          >
+            Delete
+          </MenuItem>
+        </Menu>
+      </Dropdown>
+      <AlertDialogModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onAccept={() => {
+          deleteUserMutation.mutate(user.id);
+        }}
+        onCancel={() => setModalOpen(false)}
+      />
+    </>
+  );
+}
 
 function Index() {
-  const { setNotification } = useNotification();
+  const {
+    setNotification,
+  }: { setNotification: NotificationContextType["setNotification"] } =
+    useNotification();
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(50);
   const {
     data: { data: usersQuery } = {},
     isError,
     error,
   } = useQuery({
-    queryKey: ["users"],
-    queryFn: getUsers,
+    queryKey: ["users", page, rowsPerPage],
+    queryFn: () => getUsers({ page, rowsPerPage }),
   });
 
   const users = usersQuery?.data?.users as User[];
-
-  const exportCSV = () => {
-    setNotification({
-      message: "Hola Joshua, esto aun no funciona, pero pronto lo hará! 😎",
-      type: "primary",
-    });
-  };
+  const totalUsers = usersQuery?.totalAvailable || 0;
 
   useEffect(() => {
     if (isError) {
@@ -36,6 +184,55 @@ function Index() {
       });
     }
   }, [isError, error, setNotification]);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleChangeRowsPerPage = (event: any, newValue: number | null) => {
+    setRowsPerPage(parseInt(newValue?.toString() || "50", 10));
+    setPage(0);
+  };
+
+  function labelDisplayedRows({
+    from,
+    to,
+    count,
+  }: {
+    from: number;
+    to: number;
+    count: number;
+  }) {
+    return `${from}–${to} of ${count !== -1 ? count : `more than ${to}`}`;
+  }
+
+  const getLabelDisplayedRowsTo = () => {
+    if (users.length === -1) {
+      return (page + 1) * rowsPerPage;
+    }
+    return rowsPerPage === -1
+      ? users.length
+      : Math.min(totalUsers, (page + 1) * rowsPerPage);
+  };
+
+  const handleChangePage = (newPage: number) => {
+    setPage(newPage);
+  };
+
+  const exportCSV = async () => {
+    try {
+      const response = await exportUsers();
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "users.csv");
+      document.body.appendChild(link);
+      link.click();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      setNotification({
+        message: error?.message || "An error occurred",
+        type: "danger",
+      });
+    }
+  };
 
   return (
     <>
@@ -69,7 +266,7 @@ function Index() {
               "--TableRow-hoverBackground": "rgba(0 0 0 / 0.08)",
             }}
           >
-            {!users && <TableSkeleton />}
+            {!users && <TableSkeleton rows={rowsPerPage} cols={4} />}
             {users && (
               <Table
                 borderAxis="xBetween"
@@ -108,16 +305,76 @@ function Index() {
                           "unknown"}
                       </td>
                       <td style={{ textAlign: "center" }}>
-                        <IconButton color="primary" size="sm" variant="soft">
-                          <MoreHorizIcon />
-                        </IconButton>
+                        <RowMenu
+                          user={user}
+                          rowsPerPage={rowsPerPage}
+                          page={page}
+                        />
                       </td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td colSpan={4}>Total: {users?.length}</td>
+                    <td colSpan={6}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 2,
+                          justifyContent: "flex-end",
+                        }}
+                      >
+                        <FormControl orientation="horizontal" size="sm">
+                          <FormLabel>Rows per page:</FormLabel>
+                          <Select
+                            onChange={handleChangeRowsPerPage}
+                            value={rowsPerPage}
+                            variant="soft"
+                          >
+                            <Option value={5}>5</Option>
+                            <Option value={10}>10</Option>
+                            <Option value={25}>25</Option>
+                            <Option value={50}>50</Option>
+                          </Select>
+                        </FormControl>
+                        <Typography textAlign="center" sx={{ minWidth: 80 }}>
+                          {labelDisplayedRows({
+                            from:
+                              users.length === 0 ? 0 : page * rowsPerPage + 1,
+                            to: getLabelDisplayedRowsTo(),
+                            count: totalUsers === -1 ? -1 : totalUsers,
+                          })}
+                        </Typography>
+                        <Box sx={{ display: "flex", gap: 1 }}>
+                          <IconButton
+                            size="sm"
+                            color="neutral"
+                            variant="outlined"
+                            disabled={page === 0}
+                            onClick={() => handleChangePage(page - 1)}
+                            sx={{ bgcolor: "background.surface" }}
+                          >
+                            <KeyboardArrowLeft />
+                          </IconButton>
+                          <IconButton
+                            size="sm"
+                            color="neutral"
+                            variant="outlined"
+                            disabled={
+                              totalUsers !== -1
+                                ? page >=
+                                  Math.ceil(totalUsers / rowsPerPage) - 1
+                                : false
+                            }
+                            onClick={() => handleChangePage(page + 1)}
+                            sx={{ bgcolor: "background.surface" }}
+                          >
+                            <KeyboardArrowRight />
+                          </IconButton>
+                        </Box>
+                      </Box>
+                    </td>
                   </tr>
                 </tfoot>
               </Table>

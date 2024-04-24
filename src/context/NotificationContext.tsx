@@ -7,7 +7,7 @@ type NotificationType =
   | "success"
   | "warning"
   | "danger";
-type NotificationContextType = {
+export type NotificationContextType = {
   setNotification: ({
     message,
     type,
@@ -39,7 +39,6 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     type: defaultType as NotificationType,
   });
 
-  console.log("🚀 ~ NotificationProvider ~ notification:", notification);
   return (
     <NotificationContext.Provider
       value={{
