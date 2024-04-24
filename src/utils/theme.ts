@@ -25,6 +25,11 @@ const theme = extendTheme({
           solidHoverBg: "#2C974B",
           solidActiveBg: "#298E46",
         },
+        primary: {
+          solidBg: "#2DA44E",
+          solidHoverBg: "#2C974B",
+          solidActiveBg: "#298E46",
+        },
         neutral: {
           outlinedBg: "#F6F8FA",
           outlinedHoverBg: "#F3F4F6",

@@ -21,7 +21,7 @@ import {
 import PageWrapper from "../../components/PageWrapper";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { User } from "../../types/users";
-import { getUsers, exportUsers, deleteUser } from "../../api/users";
+import { getUsers, exportUsers, deleteUser, updateUser } from "../../api/users";
 import {
   NotificationContextType,
   useNotification,
@@ -35,6 +35,9 @@ import DialogContent from "@mui/joy/DialogContent";
 import DialogActions from "@mui/joy/DialogActions";
 import DeleteForever from "@mui/icons-material/DeleteForever";
 import WarningRoundedIcon from "@mui/icons-material/WarningRounded";
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
+import { AxiosError } from "axios";
+import { APIResponse } from "../../types/api";
 
 function AlertDialogModal({
   open,
@@ -102,7 +105,7 @@ function RowMenu({
 
   const deleteUserMutation = useMutation({
     mutationFn: (id: string) => deleteUser(id),
-    onMutate: () => {
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["users", page, rowsPerPage],
       });
@@ -111,9 +114,37 @@ function RowMenu({
         type: "neutral",
       });
     },
-    onError: (error) => {
+    onError: (error: AxiosError<APIResponse>) => {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong";
       setNotification({
-        message: error?.message || "An error occurred",
+        message: errorMessage,
+        type: "danger",
+      });
+    },
+  });
+
+  const updateUserMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<User> }) =>
+      updateUser(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["users", page, rowsPerPage],
+      });
+      setNotification({
+        message: "User updated",
+        type: "neutral",
+      });
+    },
+    onError: (error: AxiosError<APIResponse>) => {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong";
+      setNotification({
+        message: errorMessage,
         type: "danger",
       });
     },
@@ -132,8 +163,19 @@ function RowMenu({
         </MenuButton>
         <Menu size="sm" sx={{ minWidth: 140 }} variant="soft">
           <MenuItem>Edit</MenuItem>
-          <MenuItem>Promote to admin</MenuItem>
           <MenuItem>Publish ad</MenuItem>
+          <MenuItem
+            onClick={() => {
+              updateUserMutation.mutate({
+                id: user.id,
+                data: {
+                  role: user.role === "admin" ? "user" : "admin",
+                },
+              });
+            }}
+          >
+            {user.role === "admin" ? "Remove admin" : "Make admin"}
+          </MenuItem>
           <Divider />
           <MenuItem
             color="danger"
@@ -297,7 +339,25 @@ function Index() {
                 <tbody>
                   {users?.map((user) => (
                     <tr key={user.id}>
-                      <td>{user.name}</td>
+                      <td>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 2,
+                          }}
+                        >
+                          <Typography>{user.name}</Typography>
+                          {user.role === "admin" && (
+                            <ManageAccountsIcon
+                              sx={{
+                                width: 20,
+                              }}
+                              color="primary"
+                            />
+                          )}
+                        </Box>
+                      </td>
                       <td>{user.email}</td>
                       <td>
                         {(user.createdAt &&
