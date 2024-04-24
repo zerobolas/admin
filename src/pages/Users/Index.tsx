@@ -17,6 +17,7 @@ import {
   Modal,
   ModalDialog,
   Button,
+  CircularProgress,
 } from "@mui/joy";
 import PageWrapper from "../../components/PageWrapper";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -206,6 +207,7 @@ function Index() {
     useNotification();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(50);
+  const [exportIsLoading, setExportIsLoading] = useState(false);
   const {
     data: { data: usersQuery } = {},
     isError,
@@ -260,6 +262,7 @@ function Index() {
 
   const exportCSV = async () => {
     try {
+      setExportIsLoading(true);
       const response = await exportUsers();
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
@@ -267,12 +270,19 @@ function Index() {
       link.setAttribute("download", "users.csv");
       document.body.appendChild(link);
       link.click();
+      setExportIsLoading(false);
+      setNotification({
+        message: "CSV exported",
+        type: "success",
+      });
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       setNotification({
         message: error?.message || "An error occurred",
         type: "danger",
       });
+      setExportIsLoading(false);
     }
   };
 
@@ -281,9 +291,10 @@ function Index() {
       <PageWrapper
         title="Users"
         button={{
-          label: "Export CSV",
+          label: exportIsLoading ? <CircularProgress /> : "Export CSV",
           color: "primary",
           onClick: exportCSV,
+          disabled: exportIsLoading,
         }}
       >
         <Box
