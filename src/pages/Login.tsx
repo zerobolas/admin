@@ -39,6 +39,7 @@ function LoginPage() {
     },
     onSuccess: ({ data }) => {
       localStorage.setItem("jwt", data.token);
+      console.log("🚀 Login Page ~ data:", data);
       setAxiosAuthHeader(data.token);
       setToken(data.token);
       setLoading(false);
