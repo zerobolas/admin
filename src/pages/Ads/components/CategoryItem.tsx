@@ -24,7 +24,7 @@ import {
   Delete as DeleteIcon,
   Add as AddIcon,
 } from "@mui/icons-material";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Category, Subcategory } from "../../../types/categories";
 import SubcategoryItem from "./SubcategoryItem";
 import CategoryEditModal from "./CategoryModal";
@@ -33,6 +33,7 @@ import {
   CategoriesResponse,
   deleteCategory,
   updateSubcategory,
+  getSubcategories,
 } from "../../../api/organization";
 import queryClient from "../../../utils/queryClient";
 import { useNotification } from "../../../context/NotificationContext";
@@ -73,6 +74,21 @@ function CategoryItem({
     isDragging,
   } = useSortable({ id: category._id });
 
+  const { data: subcategoriesData } = useQuery({
+    queryKey: ["subcategories", category._id],
+    queryFn: () => getSubcategories(category._id),
+  });
+
+  useEffect(() => {
+    if (subcategoriesData?.data?.data?.subcategories) {
+      setSubcategories(
+        subcategoriesData?.data?.data?.subcategories.sort(
+          (a, b) => a.index - b.index
+        )
+      );
+    }
+  }, [subcategoriesData]);
+
   const { mutate: deleteCategoryMutation } = useMutation({
     mutationFn: () => deleteCategory(category._id),
     onSuccess: () => {
@@ -100,7 +116,7 @@ function CategoryItem({
       updateSubcategory(category._id, subcategory),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["categories"],
+        queryKey: ["subcategories", category._id],
       });
       setNotification({
         message: "Subcategory updated",
@@ -109,7 +125,7 @@ function CategoryItem({
     },
     onError: (error: AxiosError<CategoriesResponse>) => {
       queryClient.invalidateQueries({
-        queryKey: ["categories"],
+        queryKey: ["subcategories", category._id],
       });
       setNotification({
         message: error.response?.data?.message || "An error occurred",
@@ -164,6 +180,7 @@ function CategoryItem({
         open={openCreateSubcategory}
         setOpen={setOpenCreateSubcategory}
         category={category}
+        setSubcategories={setSubcategories}
       />
       <DeleteModal
         open={openDeleteModal}

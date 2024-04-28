@@ -135,16 +135,15 @@ function Categories() {
                 >
                   <List>
                     {categories.map((category: Category) => (
-                      <>
+                      <div key={category._id}>
                         <CategoryItem
-                          key={category._id}
                           category={category}
                           isOpen={openCategory === category._id}
                           setIsOpen={handleCategoryClose}
                           onClick={() => handleCategoryOpen(category._id)}
                         />
                         <ListDivider />
-                      </>
+                      </div>
                     ))}
                   </List>
                 </SortableContext>

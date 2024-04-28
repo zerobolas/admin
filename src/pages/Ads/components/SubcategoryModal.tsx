@@ -27,6 +27,7 @@ type EditModalProps = {
   setOpen: (open: boolean) => void;
   category: Category;
   subcategory?: Subcategory;
+  setSubcategories?: (subcategories: Subcategory[]) => void;
 };
 
 const subcategorySchema = yup.object({
@@ -46,7 +47,7 @@ function SubcategoryModal({
       addSubcategory(category._id, subcategory),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["categories"],
+        queryKey: ["subcategories", category._id],
       });
       setOpen(false);
       setNotification({
@@ -56,7 +57,7 @@ function SubcategoryModal({
     },
     onError: (error: AxiosError<SubcategoriesResponse>) => {
       queryClient.invalidateQueries({
-        queryKey: ["categories"],
+        queryKey: ["subcategories", category._id],
       });
       setOpen(false);
       setNotification({
@@ -71,7 +72,7 @@ function SubcategoryModal({
       updateSubcategory(category._id, subcategory),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["categories"],
+        queryKey: ["subcategories", category._id],
       });
       setOpen(false);
       setNotification({
@@ -81,7 +82,7 @@ function SubcategoryModal({
     },
     onError: (error: AxiosError<SubcategoriesResponse>) => {
       queryClient.invalidateQueries({
-        queryKey: ["categories"],
+        queryKey: ["subcategories", category._id],
       });
       setOpen(false);
       setNotification({

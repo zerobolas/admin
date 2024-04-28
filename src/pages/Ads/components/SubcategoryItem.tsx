@@ -14,6 +14,15 @@ import { Category, Subcategory } from "../../../types/categories";
 import SubcategoryModal from "./SubcategoryModal";
 import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
+import DeleteModal from "../../../components/DeleteModal";
+import { useMutation } from "@tanstack/react-query";
+import { AxiosError } from "axios";
+import {
+  SubcategoriesResponse,
+  deleteSubcategory,
+} from "../../../api/organization";
+import queryClient from "../../../utils/queryClient";
+import { useNotification } from "../../../context/NotificationContext";
 
 type SubcategoryItemProps = {
   category: Category;
@@ -22,6 +31,7 @@ type SubcategoryItemProps = {
 
 function SubcategoryItem({ category, subcategory }: SubcategoryItemProps) {
   const [openEditSubcategory, setOpenEditSubcategory] = useState(false);
+  const [openDeleteSubcategory, setOpenDeleteSubcategory] = useState(false);
   const [isNew] = useState(
     () =>
       new Date(subcategory.createdAt).getTime() > Date.now() - 1000 * 60 * 60
@@ -35,6 +45,32 @@ function SubcategoryItem({ category, subcategory }: SubcategoryItemProps) {
     isDragging,
   } = useSortable({ id: subcategory._id });
 
+  const { setNotification } = useNotification();
+
+  const { mutate: deleteSubcategoryMutation } = useMutation({
+    mutationFn: () => deleteSubcategory(category._id, subcategory._id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["subcategories", category._id],
+      });
+      setOpenDeleteSubcategory(false);
+      setNotification({
+        message: "Subcategory deleted",
+        type: "neutral",
+      });
+    },
+    onError: (error: AxiosError<SubcategoriesResponse>) => {
+      queryClient.invalidateQueries({
+        queryKey: ["subcategories", category._id],
+      });
+      setOpenDeleteSubcategory(false);
+      setNotification({
+        message: error.response?.data?.message || "An error occurred",
+        type: "danger",
+      });
+    },
+  });
+
   return (
     <>
       <SubcategoryModal
@@ -42,6 +78,13 @@ function SubcategoryItem({ category, subcategory }: SubcategoryItemProps) {
         setOpen={setOpenEditSubcategory}
         subcategory={subcategory}
         category={category}
+      />
+      <DeleteModal
+        open={openDeleteSubcategory}
+        onClose={() => setOpenDeleteSubcategory(false)}
+        onAccept={deleteSubcategoryMutation}
+        onCancel={() => setOpenDeleteSubcategory(false)}
+        dialogContent={`Are you sure you want to delete ${subcategory.name.en}?. Ads associated with this subcategory will be affected.`}
       />
       <ListItem
         ref={setNodeRef}
@@ -80,7 +123,7 @@ function SubcategoryItem({ category, subcategory }: SubcategoryItemProps) {
           <IconButton onClick={() => setOpenEditSubcategory(true)}>
             <EditIcon />
           </IconButton>
-          <IconButton>
+          <IconButton onClick={() => setOpenDeleteSubcategory(true)}>
             <DeleteIcon />
           </IconButton>
         </ListItemButton>

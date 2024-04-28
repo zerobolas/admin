@@ -47,8 +47,20 @@ type DataSubcategory = {
   subcategory: Subcategory;
 };
 
-export type SubcategoriesResponse = APIResponse<DataSubcategory> & {
+type DataSubcategories = {
+  subcategories: Subcategory[];
+};
+
+export type SubcategoriesResponse = APIResponse<DataSubcategory>;
+
+export type SubcategoriesListResponse = APIResponse<DataSubcategories> & {
   results: number;
+};
+
+export const getSubcategories = async (
+  categoryId: string
+): Promise<AxiosResponse<SubcategoriesListResponse>> => {
+  return axiosInstance.get(`/api/v2/categories/${categoryId}/subcategories`);
 };
 
 export const addSubcategory = async (
@@ -71,5 +83,14 @@ export const updateSubcategory = async (
     {
       ...subcategory,
     }
+  );
+};
+
+export const deleteSubcategory = async (
+  categoryId: string,
+  subcategoryId: string
+): Promise<AxiosResponse<APIResponse>> => {
+  return axiosInstance.delete(
+    `/api/v2/categories/${categoryId}/${subcategoryId}`
   );
 };

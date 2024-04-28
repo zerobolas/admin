@@ -33,7 +33,23 @@ function AlertDialogModal({
           </DialogTitle>
           <Divider />
           <DialogContent>{dialogContent}</DialogContent>
-          <DialogActions>
+          <DialogActions
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: "1rem",
+            }}
+          >
+            <Button
+              variant="plain"
+              color="neutral"
+              onClick={() => {
+                onCancel();
+                onClose();
+              }}
+            >
+              Cancel
+            </Button>
             <Button
               variant="solid"
               color="danger"
@@ -44,16 +60,6 @@ function AlertDialogModal({
             >
               <DeleteForever />
               Delete
-            </Button>
-            <Button
-              variant="plain"
-              color="neutral"
-              onClick={() => {
-                onCancel();
-                onClose();
-              }}
-            >
-              Cancel
             </Button>
           </DialogActions>
         </ModalDialog>
