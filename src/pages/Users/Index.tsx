@@ -14,9 +14,6 @@ import {
   MenuItem,
   MenuButton,
   Divider,
-  Modal,
-  ModalDialog,
-  Button,
   CircularProgress,
 } from "@mui/joy";
 import PageWrapper from "../../components/PageWrapper";
@@ -31,66 +28,10 @@ import TableSkeleton from "../../components/TableSkeleton";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { KeyboardArrowLeft, KeyboardArrowRight } from "@mui/icons-material";
 import queryClient from "../../utils/queryClient";
-import DialogTitle from "@mui/joy/DialogTitle";
-import DialogContent from "@mui/joy/DialogContent";
-import DialogActions from "@mui/joy/DialogActions";
-import DeleteForever from "@mui/icons-material/DeleteForever";
-import WarningRoundedIcon from "@mui/icons-material/WarningRounded";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import { AxiosError } from "axios";
 import { APIResponse } from "../../types/api";
-
-function AlertDialogModal({
-  open,
-  onClose,
-  onAccept,
-  onCancel,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onAccept: () => void;
-  onCancel: () => void;
-}) {
-  return (
-    <>
-      <Modal open={open} onClose={onClose}>
-        <ModalDialog variant="plain" role="alertdialog">
-          <DialogTitle>
-            <WarningRoundedIcon />
-            Confirmation
-          </DialogTitle>
-          <Divider />
-          <DialogContent>
-            Are you sure you want to delete this user?
-          </DialogContent>
-          <DialogActions>
-            <Button
-              variant="solid"
-              color="danger"
-              onClick={() => {
-                onAccept();
-                onClose();
-              }}
-            >
-              <DeleteForever />
-              Delete
-            </Button>
-            <Button
-              variant="plain"
-              color="neutral"
-              onClick={() => {
-                onCancel();
-                onClose();
-              }}
-            >
-              Cancel
-            </Button>
-          </DialogActions>
-        </ModalDialog>
-      </Modal>
-    </>
-  );
-}
+import AlertDialogModal from "../../components/DeleteModal";
 
 function RowMenu({
   user,
@@ -189,6 +130,7 @@ function RowMenu({
         </Menu>
       </Dropdown>
       <AlertDialogModal
+        dialogContent={`Are you sure you want to delete ${user.name}?`}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onAccept={() => {

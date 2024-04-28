@@ -1,16 +1,17 @@
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import "./App.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import AuthProvider from "./context/AuthContext.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
-import { useQuery } from "@tanstack/react-query";
+import { getMe, setAxiosAuthHeader } from "./api/auth.ts";
 
 //Pages
 import ErrorPage from "./pages/ErrorPage.tsx";
 import UsersIndex from "./pages/Users/Index.tsx";
 import LoginPage from "./pages/Login.tsx";
-import { getMe, setAxiosAuthHeader } from "./api/auth.ts";
 import Layout from "./components/Layout.tsx";
-import { useEffect, useState } from "react";
+import Categories from "./pages/Ads/Categories.tsx";
 
 //Context
 import { NotificationProvider } from "./context/NotificationContext.tsx";
@@ -28,6 +29,16 @@ const router = createBrowserRouter([
       {
         path: "/users",
         element: <UsersIndex />,
+      },
+      {
+        path: "/ads",
+        element: <Categories />,
+        children: [
+          {
+            path: "categories",
+            element: <Categories />,
+          },
+        ],
       },
     ],
   },

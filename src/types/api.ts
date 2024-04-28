@@ -1,5 +1,5 @@
 export type APIResponse<T = undefined> = {
-  status: "success" | "error";
+  status: "success" | "error" | "fail";
   message: string;
   data?: Partial<T>;
 };
