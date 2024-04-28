@@ -54,6 +54,20 @@ const theme = extendTheme({
         animation: "wave",
       },
     },
+    JoyInput: {
+      defaultProps: {
+        variant: "soft",
+      },
+    },
+    JoyModalDialog: {
+      defaultProps: {
+        sx: {
+          left: {
+            md: "calc(50% + 8rem)",
+          },
+        },
+      },
+    },
     JoyButton: {
       styleOverrides: {
         root: ({ ownerState }) => ({

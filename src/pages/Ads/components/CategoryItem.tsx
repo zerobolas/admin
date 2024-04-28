@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { useSortable } from "@dnd-kit/sortable";
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
   ListItem,
@@ -19,10 +24,22 @@ import {
   Delete as DeleteIcon,
   Add as AddIcon,
 } from "@mui/icons-material";
+import { useMutation } from "@tanstack/react-query";
 import { Category, Subcategory } from "../../../types/categories";
 import SubcategoryItem from "./SubcategoryItem";
-import CategoryEditModal from "./CategoryEditModal";
+import CategoryEditModal from "./CategoryModal";
 import DeleteModal from "../../../components/DeleteModal";
+import {
+  CategoriesResponse,
+  deleteCategory,
+  updateSubcategory,
+} from "../../../api/organization";
+import queryClient from "../../../utils/queryClient";
+import { useNotification } from "../../../context/NotificationContext";
+import { AxiosError } from "axios";
+import SubcategoryModal from "./SubcategoryModal";
+import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 
 type CategoryItemProps = {
   category: Category;
@@ -39,7 +56,14 @@ function CategoryItem({
 }: CategoryItemProps) {
   const [openEditModal, setOpenEditModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
-
+  const [openCreateSubcategory, setOpenCreateSubcategory] = useState(false);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>(
+    category.subcategories
+  );
+  const [specialCategory] = useState(() =>
+    ["all"].includes(category.categoryId)
+  );
+  const { setNotification } = useNotification();
   const {
     listeners,
     attributes,
@@ -48,6 +72,51 @@ function CategoryItem({
     transition,
     isDragging,
   } = useSortable({ id: category._id });
+
+  const { mutate: deleteCategoryMutation } = useMutation({
+    mutationFn: () => deleteCategory(category._id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["categories"],
+      });
+      setNotification({
+        message: "Category deleted",
+        type: "neutral",
+      });
+    },
+    onError: (error: AxiosError<CategoriesResponse>) => {
+      queryClient.invalidateQueries({
+        queryKey: ["categories"],
+      });
+      setNotification({
+        message: error.response?.data?.message || "An error occurred",
+        type: "danger",
+      });
+    },
+  });
+
+  const { mutate: updateSubcategoryMutation } = useMutation({
+    mutationFn: (subcategory: Partial<Subcategory>) =>
+      updateSubcategory(category._id, subcategory),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["categories"],
+      });
+      setNotification({
+        message: "Subcategory updated",
+        type: "neutral",
+      });
+    },
+    onError: (error: AxiosError<CategoriesResponse>) => {
+      queryClient.invalidateQueries({
+        queryKey: ["categories"],
+      });
+      setNotification({
+        message: error.response?.data?.message || "An error occurred",
+        type: "danger",
+      });
+    },
+  });
 
   useEffect(() => {
     if (isDragging) {
@@ -63,23 +132,48 @@ function CategoryItem({
     setOpenDeleteModal(open);
   }
 
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (active.id !== over?.id) {
+      setSubcategories((subcategories) => {
+        if (!subcategories) return [];
+        const activeIndex = subcategories.findIndex(
+          (subcategory) => subcategory._id === active.id
+        );
+        const overIndex = subcategories.findIndex(
+          (subcategory) => subcategory._id === over?.id
+        );
+        if (activeIndex === -1 || overIndex === -1) return subcategories;
+        updateSubcategoryMutation({
+          _id: active.id.toString(),
+          index: overIndex,
+        });
+        return arrayMove(subcategories, activeIndex, overIndex);
+      });
+    }
+  }
+
   return (
     <>
       <CategoryEditModal
-        title="Edit Category"
         open={openEditModal}
         setOpen={setOpenEditModal}
-        onSubmit={() => {}}
+        category={category}
+      />
+      <SubcategoryModal
+        open={openCreateSubcategory}
+        setOpen={setOpenCreateSubcategory}
         category={category}
       />
       <DeleteModal
         open={openDeleteModal}
         onClose={() => handleOpenDeleteModal(false)}
-        onAccept={() => {}}
+        onAccept={deleteCategoryMutation}
         onCancel={() => {}}
         dialogContent={`Are you sure you want to delete the category "${category.name.en}" and all it's subcategories? Ads associated with this category will no longer be available.`}
       />
       <ListItem
+        id={category._id}
         ref={setNodeRef}
         style={{
           transform: CSS.Transform.toString(transform),
@@ -95,7 +189,6 @@ function CategoryItem({
           <ListItemDecorator
             {...listeners}
             {...attributes}
-            onClick={(e) => e.preventDefault()}
             sx={{
               cursor: isDragging ? "grabbing" : "grab",
             }}
@@ -110,20 +203,29 @@ function CategoryItem({
                 gap: "8px",
               }}
             >
-              {category.name.en} <Chip>{category.subcategories.length}</Chip>
+              {category.name.en}
+              {!specialCategory && <Chip>{category.subcategories.length}</Chip>}
+              {new Date(category.createdAt).getTime() >
+                new Date().getTime() - 1000 * 60 * 5 && (
+                <Chip color="primary">New</Chip>
+              )}
             </Box>
           </ListItemContent>
           <IconButton onClick={() => handleOpenEditModal(true)}>
             <EditIcon />
           </IconButton>
-          <IconButton onClick={() => handleOpenDeleteModal(true)}>
-            <DeleteIcon />
-          </IconButton>
-          <IconButton>
-            <AddIcon />
-          </IconButton>
+          {!specialCategory && (
+            <>
+              <IconButton onClick={() => handleOpenDeleteModal(true)}>
+                <DeleteIcon />
+              </IconButton>
+              <IconButton onClick={() => setOpenCreateSubcategory(true)}>
+                <AddIcon />
+              </IconButton>
+            </>
+          )}
         </ListItemButton>
-        {isOpen && !isDragging && (
+        {!specialCategory && isOpen && !isDragging && (
           <Box
             sx={{
               display: "flex",
@@ -134,17 +236,32 @@ function CategoryItem({
             }}
           >
             <Divider orientation="vertical" />
-            <List sx={{ "--ListItem-paddingY": "8px", paddingLeft: "15px" }}>
-              {category.subcategories.map((subcategory: Subcategory, i) => (
-                <>
-                  <SubcategoryItem
-                    key={subcategory._id}
-                    subcategory={subcategory}
-                  />
-                  {i < category.subcategories.length - 1 && <ListDivider />}
-                </>
-              ))}
-            </List>
+            <DndContext
+              onDragEnd={handleDragEnd}
+              collisionDetection={closestCenter}
+              modifiers={[restrictToVerticalAxis]}
+            >
+              <SortableContext
+                items={subcategories.map(
+                  (subcategory: Subcategory) => subcategory._id
+                )}
+                strategy={verticalListSortingStrategy}
+              >
+                <List
+                  sx={{ "--ListItem-paddingY": "8px", paddingLeft: "15px" }}
+                >
+                  {subcategories.map((subcategory: Subcategory, i) => (
+                    <div key={subcategory._id}>
+                      <SubcategoryItem
+                        category={category}
+                        subcategory={subcategory}
+                      />
+                      {i < subcategories.length - 1 && <ListDivider />}
+                    </div>
+                  ))}
+                </List>
+              </SortableContext>
+            </DndContext>
           </Box>
         )}
       </ListItem>

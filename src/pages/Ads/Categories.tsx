@@ -22,10 +22,12 @@ import TableSkeleton from "../../components/TableSkeleton";
 import AddIcon from "@mui/icons-material/Add";
 
 import CategoryItem from "./components/CategoryItem";
+import CategoryCreateModal from "./components/CategoryModal";
 
 function Categories() {
   const [categories, setCategories] = useState<Category[] | null>(null);
   const [openCategory, setOpenCategory] = useState<string | null>(null);
+  const [openCreateCategory, setOpenCreateCategory] = useState(false);
   const { setNotification } = useNotification();
   const { data: categoriesData } = useQuery({
     queryKey: ["categories"],
@@ -100,10 +102,14 @@ function Categories() {
         button={{
           label: "New category",
           color: "primary",
-          onClick: () => {},
+          onClick: () => setOpenCreateCategory(true),
           icon: <AddIcon />,
         }}
       >
+        <CategoryCreateModal
+          open={openCreateCategory}
+          setOpen={setOpenCreateCategory}
+        />
         <Box
           sx={{
             width: "100%",
