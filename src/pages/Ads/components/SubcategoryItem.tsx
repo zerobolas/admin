@@ -34,7 +34,7 @@ function SubcategoryItem({ category, subcategory }: SubcategoryItemProps) {
   const [openDeleteSubcategory, setOpenDeleteSubcategory] = useState(false);
   const [isNew] = useState(
     () =>
-      new Date(subcategory.createdAt).getTime() > Date.now() - 1000 * 60 * 60
+      new Date(subcategory.createdAt).getTime() > Date.now() - 1000 * 60 * 10
   );
   const {
     listeners,

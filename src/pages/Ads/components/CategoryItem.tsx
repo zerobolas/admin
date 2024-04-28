@@ -17,6 +17,7 @@ import {
   Divider,
   List,
   ListDivider,
+  Badge,
 } from "@mui/joy";
 import {
   DragIndicator as DragIndicatorIcon,
@@ -63,6 +64,11 @@ function CategoryItem({
   );
   const [specialCategory] = useState(() =>
     ["all"].includes(category.categoryId)
+  );
+  const hasNewSubcategories = subcategories.some(
+    (subcategory) =>
+      new Date(subcategory.createdAt).getTime() >
+      new Date().getTime() - 1000 * 60 * 10
   );
   const { setNotification } = useNotification();
   const {
@@ -221,7 +227,19 @@ function CategoryItem({
               }}
             >
               {category.name.en}
-              {!specialCategory && <Chip>{category.subcategories.length}</Chip>}
+              {hasNewSubcategories ? (
+                <Badge
+                  color="primary"
+                  size="sm"
+                  variant="solid"
+                  sx={{ border: "none" }}
+                >
+                  <Chip variant="solid">{subcategories.length}</Chip>
+                </Badge>
+              ) : (
+                <Chip variant="solid">{subcategories.length}</Chip>
+              )}
+
               {new Date(category.createdAt).getTime() >
                 new Date().getTime() - 1000 * 60 * 5 && (
                 <Chip color="primary">New</Chip>
@@ -252,7 +270,12 @@ function CategoryItem({
               width: "100%",
             }}
           >
-            <Divider orientation="vertical" />
+            <Divider
+              orientation="vertical"
+              sx={{
+                "--Divider-thickness": "5px",
+              }}
+            />
             <DndContext
               onDragEnd={handleDragEnd}
               collisionDetection={closestCenter}
