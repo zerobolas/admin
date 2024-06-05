@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { CssVarsProvider } from "@mui/joy/styles";
 import GlobalStyles from "@mui/joy/GlobalStyles";
@@ -13,8 +15,7 @@ import zerobolas from "../assets/zerobolas.svg";
 import ColorSchemeToggle from "../components/ColorSchemeToggle";
 import { login, setAxiosAuthHeader } from "../api/auth";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { CircularProgress } from "@mui/joy";
 
 interface FormElements extends HTMLFormControlsCollection {
   email: HTMLInputElement;
@@ -27,19 +28,26 @@ interface SignInFormElement extends HTMLFormElement {
 
 function LoginPage() {
   const { isSignedIn, setToken } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const mutation = useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) =>
-      login(email, password),
+    mutationFn: ({ email, password }: { email: string; password: string }) => {
+      setLoading(true);
+      setError(null);
+      return login(email, password);
+    },
     onSuccess: ({ data }) => {
       localStorage.setItem("jwt", data.token);
       console.log("🚀 Login Page ~ data:", data);
       setAxiosAuthHeader(data.token);
       setToken(data.token);
+      setLoading(false);
     },
-
     onError: (error) => {
       console.error(error);
+      setLoading(false);
+      setError(error.message);
     },
   });
 
@@ -148,6 +156,17 @@ function LoginPage() {
                   <FormLabel>Password</FormLabel>
                   <Input type="password" name="password" />
                 </FormControl>
+                {error && (
+                  <Typography
+                    level="body-xs"
+                    sx={{
+                      color: "red",
+                      textAlign: "center",
+                    }}
+                  >
+                    {error}
+                  </Typography>
+                )}
                 <Stack gap={4} sx={{ mt: 2 }}>
                   <Box
                     sx={{
@@ -156,8 +175,8 @@ function LoginPage() {
                       alignItems: "center",
                     }}
                   ></Box>
-                  <Button type="submit" fullWidth>
-                    Sign in
+                  <Button type="submit" fullWidth disabled={loading}>
+                    {loading ? <CircularProgress /> : "Sign in"}
                   </Button>
                 </Stack>
               </form>

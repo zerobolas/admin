@@ -22,10 +22,8 @@ function PageWrapper({ children, title, button }: PageWrapperProps) {
           },
         }}
       />
-      <main>
-        <PageHeader title={title} button={button} />
-        <Sheet>{children}</Sheet>
-      </main>
+      <PageHeader title={title} button={button} />
+      <Sheet sx={{ mt: "20px" }}>{children}</Sheet>
     </CssVarsProvider>
   );
 }

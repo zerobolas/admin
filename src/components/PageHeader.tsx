@@ -1,19 +1,21 @@
 import { Box, Button, ColorPaletteProp, Typography } from "@mui/joy";
+import { ReactNode } from "react";
 
 export type PageHeaderProps = {
   title: string;
   button: {
-    label: string;
+    label: string | ReactNode;
     color?: ColorPaletteProp;
     size?: "sm" | "md" | "lg";
     icon?: React.ReactNode;
+    disabled?: boolean;
     onClick: () => void;
   };
 };
 
 const PageHeader = ({
   title,
-  button: { label, color, size, icon, onClick },
+  button: { label, color, size, icon, onClick, disabled },
 }: PageHeaderProps) => {
   return (
     <Box
@@ -36,6 +38,7 @@ const PageHeader = ({
           startDecorator={icon}
           size={size}
           onClick={onClick}
+          disabled={disabled}
         >
           {label}
         </Button>

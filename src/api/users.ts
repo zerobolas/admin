@@ -1,8 +1,45 @@
-import axios, { AxiosResponse } from "axios";
+import { AxiosResponse } from "axios";
 import { User } from "../types/users";
+import axiosInstance from "../utils/axiosInstance";
+import { APIResponse } from "../types/api";
 
-const API_URL = "https://zerobolas.com/api/";
+type DataUser = {
+  users: User[];
+};
 
-export const getUsers = async (): Promise<AxiosResponse<User[]>> => {
-  return axios.get(`${API_URL}/v1/users`);
+type UsersResponse = APIResponse<DataUser> & {
+  results: number;
+  totalAvailable: number;
+};
+
+export const getUsers = async ({
+  page,
+  rowsPerPage,
+}: {
+  page: number;
+  rowsPerPage: number;
+}): Promise<AxiosResponse<UsersResponse>> => {
+  return axiosInstance.get(`/api/v1/users`, {
+    params: {
+      limit: rowsPerPage,
+      page: page + 1,
+    },
+  });
+};
+
+export const exportUsers = async (): Promise<AxiosResponse<Blob>> => {
+  return axiosInstance.get(`/api/v1/users/export-users`, {
+    responseType: "blob",
+  });
+};
+
+export const deleteUser = async (id: string): Promise<AxiosResponse<void>> => {
+  return axiosInstance.delete(`/api/v1/users/${id}`);
+};
+
+export const updateUser = async (
+  id: string,
+  data: Partial<User>
+): Promise<AxiosResponse<User>> => {
+  return axiosInstance.patch(`/api/v1/users/${id}`, data);
 };

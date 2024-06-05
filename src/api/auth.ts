@@ -1,8 +1,5 @@
-import axios, { AxiosResponse } from "axios";
-
-const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-});
+import { AxiosResponse } from "axios";
+import instance from "../utils/axiosInstance";
 
 // set the JWT token in the Authorization header
 export const setAxiosAuthHeader = (token: string) => {

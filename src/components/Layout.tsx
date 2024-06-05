@@ -7,10 +7,10 @@ import Box from "@mui/joy/Box";
 
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import GlobalToast from "./GlobalToast";
 
 function Layout() {
   const { isSignedIn } = useAuth();
-  console.log("🚀 ~ Layout ~ isSignedIn:", isSignedIn);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,10 +22,20 @@ function Layout() {
   return (
     <CssVarsProvider disableTransitionOnChange>
       <CssBaseline />
-      <Box sx={{ display: "flex", minHeight: "100dvh" }}>
+      <Box
+        sx={{
+          display: "flex",
+          minHeight: "100dvh",
+          height: "100vh",
+          maxHeight: "100vh",
+          overflow: "hidden",
+        }}
+      >
+        <GlobalToast />
         <Header />
         <Sidebar />
         <Box
+          id="main-content"
           component="main"
           className="MainContent"
           sx={{
@@ -40,7 +50,7 @@ function Layout() {
             display: "flex",
             flexDirection: "column",
             minWidth: 0,
-            height: "100dvh",
+            overflowY: "auto",
             gap: 1,
           }}
         >
