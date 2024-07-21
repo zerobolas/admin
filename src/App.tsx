@@ -73,7 +73,7 @@ function App() {
 
   useEffect(() => {
     if (data?.data?.data?.user) {
-      setUser(data?.data?.data?.user);
+      setUser(data.data.data.user);
     }
   }, [data]);
 

@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
-import { Box, List, ListDivider, Sheet } from "@mui/joy";
+import {
+  Box,
+  Divider,
+  List,
+  ListDivider,
+  ListItem,
+  ListItemButton,
+  ListItemContent,
+  Sheet,
+} from "@mui/joy";
 import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
@@ -23,6 +32,8 @@ import AddIcon from "@mui/icons-material/Add";
 
 import CategoryItem from "./components/CategoryItem";
 import CategoryCreateModal from "./components/CategoryModal";
+
+const specialCategories = ["properties", "vehicles", "jobs", "services", "all"];
 
 function Categories() {
   const [categories, setCategories] = useState<Category[] | null>(null);
@@ -59,7 +70,7 @@ function Categories() {
   useEffect(() => {
     if (categoriesData?.data?.data?.categories) {
       setCategories(
-        categoriesData?.data?.data?.categories.sort((a, b) => a.index - b.index)
+        categoriesData.data.data.categories.sort((a, b) => a.index - b.index)
       );
     }
   }, [categoriesData]);
@@ -122,33 +133,80 @@ function Categories() {
               borderRadius: "sm",
             }}
           >
-            <DndContext
-              onDragEnd={handleDragEnd}
-              collisionDetection={closestCenter}
-              modifiers={[restrictToVerticalAxis]}
-            >
-              {!categories && <TableSkeleton rows={40} cols={1} />}
-              {categories && (
-                <SortableContext
-                  items={categories.map((category: Category) => category._id)}
-                  strategy={verticalListSortingStrategy}
+            {!categories && <TableSkeleton rows={40} cols={1} />}
+            {categories && (
+              <List>
+                {categories
+                  .filter((c) => specialCategories.includes(c.categoryId))
+                  .map((category: Category) => (
+                    <div key={category._id}>
+                      <CategoryItem
+                        category={category}
+                        isOpen={openCategory === category._id}
+                        setIsOpen={handleCategoryClose}
+                        onClick={() => handleCategoryOpen(category._id)}
+                      />
+                      <ListDivider />
+                    </div>
+                  ))}
+                <DndContext
+                  onDragEnd={handleDragEnd}
+                  collisionDetection={closestCenter}
+                  modifiers={[restrictToVerticalAxis]}
                 >
-                  <List>
-                    {categories.map((category: Category) => (
-                      <div key={category._id}>
-                        <CategoryItem
-                          category={category}
-                          isOpen={openCategory === category._id}
-                          setIsOpen={handleCategoryClose}
-                          onClick={() => handleCategoryOpen(category._id)}
+                  <SortableContext
+                    items={categories.map((category: Category) => category._id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <ListItem
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                      }}
+                    >
+                      <ListItemButton>
+                        <ListItemContent>Something to Sell</ListItemContent>
+                      </ListItemButton>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          gap: "8px",
+                          alignItems: "center",
+                          padding: "8px",
+                          width: "100%",
+                        }}
+                      >
+                        <Divider
+                          orientation="vertical"
+                          sx={{
+                            "--Divider-thickness": "5px",
+                          }}
                         />
-                        <ListDivider />
-                      </div>
-                    ))}
-                  </List>
-                </SortableContext>
-              )}
-            </DndContext>
+                        <List>
+                          {categories
+                            .filter(
+                              (c) => !specialCategories.includes(c.categoryId)
+                            )
+                            .map((category: Category, i) => (
+                              <div key={category._id}>
+                                <CategoryItem
+                                  category={category}
+                                  isOpen={openCategory === category._id}
+                                  setIsOpen={handleCategoryClose}
+                                  onClick={() =>
+                                    handleCategoryOpen(category._id)
+                                  }
+                                />
+                                {i < categories.length - 1 && <ListDivider />}
+                              </div>
+                            ))}
+                        </List>
+                      </Box>
+                    </ListItem>
+                  </SortableContext>
+                </DndContext>
+              </List>
+            )}
           </Sheet>
         </Box>
       </PageWrapper>
