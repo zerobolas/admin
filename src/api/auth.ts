@@ -19,7 +19,7 @@ export const login = async (
   email: string,
   password: string
 ): Promise<AxiosResponse> => {
-  return instance.post("/api/auth/login?role=admin", { email, password });
+  return instance.post("/auth/login?role=admin", { email, password });
 };
 
 export const getMe = async (): Promise<AxiosResponse> => {
