@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import {
   Box,
   Divider,
+  IconButton,
   List,
   ListDivider,
   ListItem,
   ListItemButton,
   ListItemContent,
+  ListItemDecorator,
   Sheet,
 } from "@mui/joy";
 import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
@@ -32,6 +34,7 @@ import AddIcon from "@mui/icons-material/Add";
 
 import CategoryItem from "./components/CategoryItem";
 import CategoryCreateModal from "./components/CategoryModal";
+import { DragIndicator } from "@mui/icons-material";
 
 const specialCategories = ["properties", "vehicles", "jobs", "services", "all"];
 
@@ -39,6 +42,7 @@ function Categories() {
   const [categories, setCategories] = useState<Category[] | null>(null);
   const [openCategory, setOpenCategory] = useState<string | null>(null);
   const [openCreateCategory, setOpenCreateCategory] = useState(false);
+  const [somethingToSellOpen, setSomethingToSellOpen] = useState(true);
   const { setNotification } = useNotification();
   const { data: categoriesData } = useQuery({
     queryKey: ["categories"],
@@ -164,12 +168,22 @@ function Categories() {
                         flexDirection: "column",
                       }}
                     >
-                      <ListItemButton>
+                      <ListItemButton
+                        onClick={() =>
+                          setSomethingToSellOpen(!somethingToSellOpen)
+                        }
+                      >
+                        <ListItemDecorator>
+                          <DragIndicator />
+                        </ListItemDecorator>
                         <ListItemContent>Something to Sell</ListItemContent>
+                        <IconButton onClick={() => setOpenCreateCategory(true)}>
+                          <AddIcon />
+                        </IconButton>
                       </ListItemButton>
                       <Box
                         sx={{
-                          display: "flex",
+                          display: somethingToSellOpen ? "flex" : "none",
                           gap: "8px",
                           alignItems: "center",
                           padding: "8px",
@@ -203,6 +217,7 @@ function Categories() {
                         </List>
                       </Box>
                     </ListItem>
+                    <ListDivider />
                   </SortableContext>
                 </DndContext>
               </List>
